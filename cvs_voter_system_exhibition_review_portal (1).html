@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CVS — Computerised Voter System | SST Exhibition</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Newsreader for editorial serif headlines & Inter for clean text -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ivory: {
+              50: '#FDFCF9',
+              100: '#FAF8F5',
+              200: '#F3EFE8',
+              border: '#E6E1D8',
+              line: '#DCD5C9'
+            },
+            civic: {
+              900: '#0B192C',
+              800: '#132A4A',
+              700: '#1D3B66',
+              muted: '#5F6C80'
+            },
+            teal: {
+              800: '#0D5C58',
+              700: '#12736D',
+              50: '#F0F9F8'
+            }
+          },
+          fontFamily: {
+            serif: ['Newsreader', 'Georgia', 'serif'],
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #FAF8F5;
+      color: #0B192C;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Handcrafted tactile card */
+    .civic-card {
+      background: #FFFFFF;
+      border: 1px solid #E6E1D8;
+      box-shadow: 0 1px 2px rgba(11, 25, 44, 0.03), 0 6px 16px rgba(11, 25, 44, 0.02);
+    }
+
+    /* Star button interaction */
+    .star-btn {
+      touch-action: manipulation;
+      transition: transform 0.12s ease, color 0.12s ease;
+    }
+    .star-btn:active {
+      transform: scale(0.90);
+    }
+
+    /* Clean civic inputs */
+    .civic-input {
+      background-color: #FAF8F5;
+      border: 1px solid #DCD5C9;
+      color: #0B192C;
+      transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .civic-input:focus {
+      background-color: #FFFFFF;
+      border-color: #12736D;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(18, 115, 109, 0.12);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-teal-50 selection:text-teal-800">
+
+  <!-- Top Masthead -->
+  <header class="bg-[#0B192C] text-white border-b border-[#050D17]">
+    <div class="max-w-xl mx-auto px-5 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <!-- Official Crest Mark -->
+        <div class="w-9 h-9 rounded bg-[#132A4A] border border-white/15 flex items-center justify-center font-bold text-xs tracking-widest text-[#5EEAD4]">
+          CVS
+        </div>
+        <div>
+          <h1 class="text-sm sm:text-base font-medium tracking-tight text-white leading-tight">
+            Computerised Voter System
+          </h1>
+          <p class="text-[11px] text-gray-300">Social Science Exhibition</p>
+        </div>
+      </div>
+      <div>
+        <span class="text-[11px] font-medium tracking-wide text-gray-300 bg-white/10 px-2.5 py-1 rounded">
+          Visitor Stall Feedback
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-xl mx-auto w-full px-4 py-8 sm:py-10 flex-grow">
+    
+    <!-- Header Text (Pure & focused, rating pill completely removed) -->
+    <div class="mb-7">
+      <h2 class="font-serif text-2xl sm:text-3xl font-medium text-civic-900 tracking-tight leading-snug">
+        How was your experience using our voting system?
+      </h2>
+      <p class="text-xs sm:text-sm text-civic-muted mt-2 leading-relaxed">
+        Thank you for visiting our stall! Please take a moment to leave your rating and feedback on our Computerised Voter System project.
+      </p>
+    </div>
+
+    <!-- Alert / Status Notice -->
+    <div id="notice-box" class="hidden mb-5 p-3.5 rounded-lg text-xs font-medium border transition-all"></div>
+
+    <!-- Feedback Submission Card -->
+    <div class="civic-card rounded-xl p-5 sm:p-7">
+      <form id="feedback-form" onsubmit="handleFeedbackSubmit(event)" class="space-y-5">
+        
+        <!-- Star Rating Widget -->
+        <div>
+          <div class="flex justify-between items-baseline mb-2">
+            <label class="block text-xs font-semibold uppercase tracking-wider text-civic-900">
+              Your Rating <span class="text-red-600">*</span>
+            </label>
+            <span id="star-desc" class="text-xs font-medium text-teal-700">
+              Tap a star to rate
+            </span>
+          </div>
+
+          <div class="bg-ivory-100 p-3 rounded-lg border border-ivory-border flex items-center justify-center">
+            <div id="stars-row" class="flex gap-2 sm:gap-2.5" role="radiogroup" aria-label="Rating from 1 to 5 stars">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+          <input type="hidden" id="selected-rating" value="0">
+          <p id="star-err" class="hidden text-xs text-red-600 mt-1.5 font-medium">Please select a star rating.</p>
+        </div>
+
+        <!-- Name Field -->
+        <div>
+          <label for="visitor-name" class="block text-xs font-semibold uppercase tracking-wider text-civic-900 mb-1.5">
+            Your Name <span class="text-red-600">*</span>
+          </label>
+          <input 
+            type="text" 
+            id="visitor-name" 
+            required 
+            placeholder="e.g. Ananya Rao" 
+            class="civic-input w-full px-3.5 py-2.5 rounded-lg text-xs sm:text-sm placeholder-gray-400"
+          >
+        </div>
+
+        <!-- Feedback Field -->
+        <div>
+          <label for="visitor-review" class="block text-xs font-semibold uppercase tracking-wider text-civic-900 mb-1.5">
+            Your Feedback <span class="text-red-600">*</span>
+          </label>
+          <textarea 
+            id="visitor-review" 
+            required 
+            rows="3" 
+            placeholder="What worked well, or how can our voting setup be improved?" 
+            class="civic-input w-full px-3.5 py-2.5 rounded-lg text-xs sm:text-sm placeholder-gray-400 resize-y"
+          ></textarea>
+        </div>
+
+        <!-- Optional Contact / Section -->
+        <div>
+          <div class="flex justify-between items-baseline mb-1.5">
+            <label for="visitor-contact" class="block text-xs font-semibold uppercase tracking-wider text-civic-900">
+              Class / Section / Phone
+            </label>
+            <span class="text-[11px] text-civic-muted">Optional</span>
+          </div>
+          <input 
+            type="text" 
+            id="visitor-contact" 
+            placeholder="e.g. Class 10-A or parent contact" 
+            class="civic-input w-full px-3.5 py-2.5 rounded-lg text-xs sm:text-sm placeholder-gray-400"
+          >
+        </div>
+
+        <!-- Submit Button -->
+        <button 
+          type="submit" 
+          id="submit-btn" 
+          class="w-full bg-[#0B192C] hover:bg-[#132A4A] text-white font-medium py-3 px-4 rounded-lg transition text-xs sm:text-sm flex items-center justify-center space-x-2 active:scale-[0.99] mt-2 shadow-sm"
+        >
+          <span id="btn-text">Submit Feedback</span>
+          <svg id="btn-spinner" class="hidden animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+        </button>
+      </form>
+    </div>
+
+    <!-- Quiet reassurance under form -->
+    <p class="text-center text-[11px] text-civic-muted mt-3">
+      Responses are submitted directly to the project stall register.
+    </p>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-ivory-200 border-t border-ivory-border py-3.5 px-4">
+    <div class="max-w-xl mx-auto flex items-center justify-between text-[11px] text-civic-muted">
+      <div>
+        <span>CVS Project</span>
+        <span class="mx-1.5 opacity-40">•</span>
+        <span>SST Exhibition</span>
+      </div>
+
+      <!-- Secret Admin Trigger: Discreet icon that blends into typography -->
+      <button 
+        type="button" 
+        onclick="openAdminAuth()" 
+        title="Admin"
+        aria-label="Admin Access"
+        class="text-gray-400 hover:text-civic-900 p-1 rounded focus:outline-none transition opacity-30 hover:opacity-100"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Admin Passcode Modal -->
+  <div id="admin-auth-modal" class="fixed inset-0 bg-[#0B192C]/65 z-50 flex items-center justify-center p-4 hidden backdrop-blur-[2px]">
+    <div class="bg-white rounded-xl max-w-xs w-full p-5 border border-ivory-border shadow-2xl">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-civic-900">Project Admin</h3>
+        <button onclick="closeModal('admin-auth-modal')" class="text-gray-400 hover:text-gray-600 text-lg leading-none">&times;</button>
+      </div>
+      
+      <p class="text-xs text-civic-muted mb-3.5 leading-relaxed">
+        Enter the password to access visitor feedback.
+      </p>
+
+      <form onsubmit="verifyAdminPassword(event)">
+        <div class="mb-3.5">
+          <input 
+            type="password" 
+            id="admin-pass-input" 
+            placeholder="Passcode" 
+            required 
+            class="civic-input w-full px-3 py-2 text-xs rounded-lg text-civic-900"
+          >
+          <p id="auth-err-msg" class="hidden text-[11px] text-red-600 mt-1 font-medium">Incorrect password. Default is cvs2026.</p>
+        </div>
+        <div class="flex justify-end gap-2 text-xs">
+          <button type="button" onclick="closeModal('admin-auth-modal')" class="px-3 py-1.5 text-civic-muted hover:bg-ivory-100 rounded">
+            Cancel
+          </button>
+          <button type="submit" class="px-3.5 py-1.5 bg-[#0B192C] text-white rounded font-medium hover:bg-[#132A4A] transition">
+            Log In
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard Modal -->
+  <div id="admin-board-modal" class="fixed inset-0 bg-[#0B192C]/80 z-50 overflow-y-auto hidden p-3 sm:p-5">
+    <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-2xl border border-ivory-border overflow-hidden my-4">
+      
+      <!-- Dashboard Top Header -->
+      <div class="bg-[#0B192C] text-white px-5 py-4 flex items-center justify-between border-b border-black/20">
+        <div>
+          <h2 class="text-sm font-semibold tracking-tight">CVS — Exhibition Feedback Register</h2>
+          <p class="text-[11px] text-gray-300">Live visitor responses</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="syncFromCloud(true)" class="text-xs bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded transition">
+            Sync Now
+          </button>
+          <button onclick="exportCSV()" class="text-xs bg-teal-800 hover:bg-teal-700 text-white px-2.5 py-1 rounded transition">
+            Export CSV
+          </button>
+          <button onclick="closeAdminBoard()" class="text-xs bg-red-900/80 hover:bg-red-800 text-white px-2.5 py-1 rounded transition">
+            Exit
+          </button>
+        </div>
+      </div>
+
+      <!-- Dashboard Body -->
+      <div class="p-5 space-y-4">
+        
+        <!-- Summary Cards (Visible strictly to Admin) -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-ivory-100 rounded-lg p-3.5 border border-ivory-border">
+            <span class="text-[11px] font-medium text-civic-muted uppercase tracking-wider">Total Responses</span>
+            <div id="dash-count" class="text-2xl font-bold text-civic-900 mt-1">0</div>
+          </div>
+          <div class="bg-ivory-100 rounded-lg p-3.5 border border-ivory-border">
+            <span class="text-[11px] font-medium text-civic-muted uppercase tracking-wider">Average Rating</span>
+            <div id="dash-avg" class="text-2xl font-bold text-civic-900 mt-1">0.0 / 5.0</div>
+          </div>
+        </div>
+
+        <!-- Rating Distribution -->
+        <div class="bg-ivory-50 rounded-lg p-4 border border-ivory-border">
+          <h4 class="text-xs font-semibold text-civic-900 uppercase tracking-wider mb-2.5">Star Breakdown</h4>
+          <div class="space-y-2" id="distribution-bars">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Review List with Star Filter -->
+        <div class="border-t border-ivory-border pt-4">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-semibold text-civic-900 uppercase tracking-wider">Visitor Submissions</h4>
+            <div class="flex items-center gap-1.5 text-xs">
+              <label for="filter-stars" class="text-civic-muted font-medium">Filter:</label>
+              <select id="filter-stars" onchange="renderAdminReviewList()" class="border border-ivory-border rounded px-2 py-1 bg-white text-xs text-civic-900">
+                <option value="ALL">All Stars</option>
+                <option value="5">5 Stars only</option>
+                <option value="4">4 Stars only</option>
+                <option value="3">3 Stars only</option>
+                <option value="2">2 Stars only</option>
+                <option value="1">1 Star only</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="admin-reviews-container" class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Dashboard Footer -->
+      <div class="bg-ivory-100 px-5 py-3 border-t border-ivory-border flex justify-end">
+        <button onclick="closeAdminBoard()" class="px-3 py-1.5 text-xs text-civic-900 hover:bg-ivory-200 rounded font-medium transition">
+          Close Window
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configuration & Shared Multi-Device Storage Key
+    const CONFIG = {
+      passwords: ['cvs2026', 'cvsadmin'],
+      storageKey: 'cvs_voter_system_reviews_v2',
+      // Shared endpoint for genuine cross-device submissions without terminal or backend setup
+      remoteUrl: 'https://api.restful-api.dev/objects/ff808181932badb801933092bbca0a12'
+    };
+
+    let state = {
+      reviews: [],
+      selectedRating: 0,
+      isAdmin: false
+    };
+
+    const ratingLabels = [
+      'Tap a star to rate',
+      '1 Star — Needs improvement',
+      '2 Stars — Fair',
+      '3 Stars — Good',
+      '4 Stars — Very good',
+      '5 Stars — Excellent'
+    ];
+
+    // Build interactive star buttons
+    function initStars() {
+      const row = document.getElementById('stars-row');
+      row.innerHTML = '';
+
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'star-btn text-gray-300 hover:text-amber-500 p-1 focus:outline-none';
+        btn.setAttribute('aria-label', `${i} star rating`);
+        btn.onclick = () => setRating(i);
+        btn.onmouseover = () => updateStarColors(i);
+        btn.onmouseleave = () => updateStarColors(state.selectedRating);
+
+        btn.innerHTML = `
+          <svg class="w-8 h-8 fill-current" viewBox="0 0 24 24">
+            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+          </svg>
+        `;
+        row.appendChild(btn);
+      }
+    }
+
+    function setRating(val) {
+      state.selectedRating = val;
+      document.getElementById('selected-rating').value = val;
+      document.getElementById('star-err').classList.add('hidden');
+      updateStarColors(val);
+      document.getElementById('star-desc').textContent = ratingLabels[val];
+    }
+
+    function updateStarColors(val) {
+      const btns = document.querySelectorAll('.star-btn');
+      btns.forEach((btn, index) => {
+        if (index < val) {
+          btn.classList.remove('text-gray-300');
+          btn.classList.add('text-amber-500');
+        } else {
+          btn.classList.add('text-gray-300');
+          btn.classList.remove('text-amber-500');
+        }
+      });
+      document.getElementById('star-desc').textContent = ratingLabels[val] || ratingLabels[0];
+    }
+
+    // Multi-device synchronization
+    async function syncFromCloud(showNotification = false) {
+      // 1. Instant local cache load
+      const localData = localStorage.getItem(CONFIG.storageKey);
+      if (localData) {
+        try {
+          state.reviews = JSON.parse(localData);
+          updateAdminMetrics();
+        } catch (e) {
+          state.reviews = [];
+        }
+      }
+
+      // 2. Fetch from shared endpoint
+      try {
+        const res = await fetch(CONFIG.remoteUrl, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          let cloudData = [];
+
+          if (Array.isArray(json)) {
+            cloudData = json;
+          } else if (json.data && Array.isArray(json.data.reviews)) {
+            cloudData = json.data.reviews;
+          }
+
+          if (Array.isArray(cloudData)) {
+            state.reviews = cloudData;
+            localStorage.setItem(CONFIG.storageKey, JSON.stringify(state.reviews));
+            updateAdminMetrics();
+            if (state.isAdmin) renderAdminReviewList();
+          }
+        }
+      } catch (err) {
+        // Graceful offline fallback
+      }
+    }
+
+    async function saveReviewToCloud(item) {
+      state.reviews.unshift(item);
+      localStorage.setItem(CONFIG.storageKey, JSON.stringify(state.reviews));
+      updateAdminMetrics();
+
+      try {
+        await fetch(CONFIG.remoteUrl, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: { reviews: state.reviews } })
+        }).catch(async () => {
+          await fetch(CONFIG.remoteUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data: { reviews: state.reviews } })
+          });
+        });
+      } catch (e) {
+        // Kept in local storage fallback
+      }
+    }
+
+    // Calculate admin metrics (strictly inside admin)
+    function updateAdminMetrics() {
+      const total = state.reviews.length;
+      let avg = '0.0';
+
+      if (total > 0) {
+        const sum = state.reviews.reduce((acc, r) => acc + Number(r.rating || 0), 0);
+        avg = (sum / total).toFixed(1);
+      }
+
+      const dashCount = document.getElementById('dash-count');
+      const dashAvg = document.getElementById('dash-avg');
+      if (dashCount) dashCount.textContent = total;
+      if (dashAvg) dashAvg.textContent = `${avg} / 5.0`;
+
+      renderBreakdownBars();
+    }
+
+    function renderBreakdownBars() {
+      const container = document.getElementById('distribution-bars');
+      if (!container) return;
+
+      const total = state.reviews.length;
+      const countMap = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+      
+      state.reviews.forEach(r => {
+        const star = parseInt(r.rating, 10);
+        if (countMap[star] !== undefined) countMap[star]++;
+      });
+
+      container.innerHTML = '';
+      for (let star = 5; star >= 1; star--) {
+        const count = countMap[star];
+        const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+
+        const row = document.createElement('div');
+        row.className = 'flex items-center text-xs gap-2.5';
+        row.innerHTML = `
+          <span class="w-12 text-civic-muted font-medium">${star} Star</span>
+          <div class="flex-grow bg-ivory-200 h-2.5 rounded-full overflow-hidden border border-ivory-border">
+            <div class="bg-teal-800 h-full rounded-full transition-all" style="width: ${pct}%"></div>
+          </div>
+          <span class="w-6 text-right font-semibold text-civic-900">${count}</span>
+        `;
+        container.appendChild(row);
+      }
+    }
+
+    async function handleFeedbackSubmit(e) {
+      e.preventDefault();
+
+      const rating = parseInt(document.getElementById('selected-rating').value, 10);
+      if (!rating || rating < 1 || rating > 5) {
+        document.getElementById('star-err').classList.remove('hidden');
+        return;
+      }
+
+      const name = document.getElementById('visitor-name').value.trim();
+      const review = document.getElementById('visitor-review').value.trim();
+      const contact = document.getElementById('visitor-contact').value.trim();
+
+      if (!name || !review) {
+        showNotice('Please provide both your name and feedback.', 'error');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submit-btn');
+      const btnText = document.getElementById('btn-text');
+      const spinner = document.getElementById('btn-spinner');
+
+      submitBtn.disabled = true;
+      btnText.textContent = 'Submitting...';
+      spinner.classList.remove('hidden');
+
+      const reviewItem = {
+        id: 'cvs_' + Date.now(),
+        name: name,
+        rating: rating,
+        review: review,
+        contact: contact || '',
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        await saveReviewToCloud(reviewItem);
+        document.getElementById('feedback-form').reset();
+        setRating(0);
+        showNotice('Thank you! Your feedback has been recorded.', 'success');
+      } catch (err) {
+        showNotice('Could not submit feedback. Please try again.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        btnText.textContent = 'Submit Feedback';
+        spinner.classList.add('hidden');
+      }
+    }
+
+    function showNotice(text, type) {
+      const box = document.getElementById('notice-box');
+      box.classList.remove('hidden', 'bg-teal-50', 'text-teal-800', 'border-teal-700/30', 'bg-red-50', 'text-red-900', 'border-red-200');
+
+      if (type === 'success') {
+        box.classList.add('bg-teal-50', 'text-teal-800', 'border-teal-700/30');
+      } else {
+        box.classList.add('bg-red-50', 'text-red-900', 'border-red-200');
+      }
+
+      box.textContent = text;
+      box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function openAdminAuth() {
+      document.getElementById('admin-pass-input').value = '';
+      document.getElementById('auth-err-msg').classList.add('hidden');
+      document.getElementById('admin-auth-modal').classList.remove('hidden');
+    }
+
+    function verifyAdminPassword(e) {
+      e.preventDefault();
+      const entered = document.getElementById('admin-pass-input').value.trim();
+
+      if (CONFIG.passwords.includes(entered)) {
+        state.isAdmin = true;
+        closeModal('admin-auth-modal');
+        document.getElementById('admin-board-modal').classList.remove('hidden');
+        renderAdminReviewList();
+        updateAdminMetrics();
+      } else {
+        document.getElementById('auth-err-msg').classList.remove('hidden');
+      }
+    }
+
+    function closeAdminBoard() {
+      state.isAdmin = false;
+      closeModal('admin-board-modal');
+    }
+
+    function renderAdminReviewList() {
+      const container = document.getElementById('admin-reviews-container');
+      const filter = document.getElementById('filter-stars').value;
+
+      let list = state.reviews;
+      if (filter !== 'ALL') {
+        list = list.filter(r => String(r.rating) === filter);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-7 text-civic-muted text-xs bg-ivory-100 rounded-lg border border-ivory-border">
+            No visitor feedback found under this filter.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(r => {
+        const d = new Date(r.timestamp);
+        const formattedDate = !isNaN(d) ? d.toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit'
+        }) : 'Recent';
+
+        const starStars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+
+        return `
+          <div class="bg-ivory-50 border border-ivory-border rounded-lg p-3.5 text-xs">
+            <div class="flex justify-between items-start mb-1">
+              <div>
+                <span class="font-bold text-civic-900">${cleanStr(r.name)}</span>
+                ${r.contact ? `<span class="text-civic-muted ml-1 font-normal">(${cleanStr(r.contact)})</span>` : ''}
+              </div>
+              <span class="text-amber-600 font-bold tracking-tight">${starStars}</span>
+            </div>
+            <p class="text-civic-900 leading-relaxed my-1.5">${cleanStr(r.review)}</p>
+            <div class="text-[10px] text-civic-muted">
+              Submitted: ${formattedDate}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function exportCSV() {
+      if (state.reviews.length === 0) {
+        alert('No reviews found to export.');
+        return;
+      }
+
+      const rows = [
+        ['Visitor Name', 'Rating', 'Feedback', 'Contact/Class', 'Submission Timestamp']
+      ];
+
+      state.reviews.forEach(r => {
+        rows.push([
+          `"${(r.name || '').replace(/"/g, '""')}"`,
+          r.rating,
+          `"${(r.review || '').replace(/"/g, '""')}"`,
+          `"${(r.contact || '').replace(/"/g, '""')}"`,
+          `"${r.timestamp || ''}"`
+        ]);
+      });
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(e => e.join(',')).join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `CVS_Exhibition_Feedback_Log.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function cleanStr(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      initStars();
+      syncFromCloud();
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeModal('admin-auth-modal');
+          closeModal('admin-board-modal');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
